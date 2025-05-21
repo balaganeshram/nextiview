@@ -526,8 +526,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
             {isLoggedIn ? (
               <>
                 <MKTypography variant="button" fontWeight="medium" color="success" sx={{ mx: 1 }}>
-                  {/* Hello, {user?.name} */}
-                  Hello John,
+                  Hello, {user?.name}
                 </MKTypography>
                 <MKButton onClick={logout} variant="gradient" color="error" size="small">
                   Logout
