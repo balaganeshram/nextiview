@@ -309,7 +309,7 @@ const Presentation = () => {
                   fontFamily="'Roboto Slab', sans-serif"
                   opacity={0.9}
                 >
-                  Upload a video file or simply paste the YouTube link to get started.
+                  Upload a video file simply to get started.
                 </MKTypography>
               </MKBox>
             </Grid>
