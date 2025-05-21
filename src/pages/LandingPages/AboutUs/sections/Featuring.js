@@ -1,29 +1,9 @@
-/*
-=========================================================
-* Material Kit 2 React - v2.1.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-kit-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-// @mui material components
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
-
-// Material Kit 2 React components
 import MKBox from "components/MKBox";
-
-// Material Kit 2 React examples
 import DefaultCounterCard from "examples/Cards/CounterCards/DefaultCounterCard";
 
-// Images
+// Sample logos (can be replaced with actual customer/partner logos)
 import coinbase from "assets/images/logos/gray-logos/logo-coinbase.svg";
 import nasa from "assets/images/logos/gray-logos/logo-nasa.svg";
 import netflix from "assets/images/logos/gray-logos/logo-netflix.svg";
@@ -35,6 +15,7 @@ function Featuring() {
   return (
     <MKBox component="section" pt={3} pb={8}>
       <Container>
+        {/* Trusted Brands Section */}
         <Grid container spacing={3} sx={{ mb: 12 }}>
           <Grid item xs={6} md={4} lg={2}>
             <MKBox component="img" src={coinbase} alt="coinbase" width="100%" opacity={0.7} />
@@ -55,30 +36,32 @@ function Featuring() {
             <MKBox component="img" src={vodafone} alt="vodafone" width="100%" opacity={0.7} />
           </Grid>
         </Grid>
+
+        {/* Performance Metrics Section */}
         <Grid container justifyContent="center" sx={{ textAlign: "center" }}>
           <Grid item xs={12} md={3}>
             <DefaultCounterCard
-              count={5234}
+              count={10000}
               separator=","
-              title="Projects"
-              description="Of “high-performing” level are led by a certified project manager"
+              title="Videos Repurposed"
+              description="Optimized for social platforms, blogs, and more"
             />
           </Grid>
           <Grid item xs={12} md={3}>
             <DefaultCounterCard
-              count={3400}
+              count={5000}
               separator=","
               suffix="+"
-              title="Hours"
-              description="That meets quality standards required by our users"
+              title="Content Creators Served"
+              description="From solo creators to media teams"
             />
           </Grid>
           <Grid item xs={12} md={3}>
             <DefaultCounterCard
-              count={24}
-              suffix="/7"
-              title="Support"
-              description="Actively engage team members that finishes on time"
+              count={99}
+              suffix="%"
+              title="Satisfaction Rate"
+              description="User-rated success across global campaigns"
             />
           </Grid>
         </Grid>

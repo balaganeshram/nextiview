@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
+import { Oval } from "react-loader-spinner"; // Added loader
 
 // MUI components
 import Card from "@mui/material/Card";
@@ -20,37 +21,68 @@ import bgImage from "assets/images/bg_signin.jpg";
 import brandLogo from "assets/images/bgicon1.png";
 import { useUser } from "context/UserContext";
 
-//API & Session
+// API & Session
 import { validateOrCreateUser } from "api/loginApi";
 import { saveToSession } from "utils/sessionHelper";
 
 function SignInBasic() {
   const { login } = useUser();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false); // Loader state
 
-  const handleLoginSuccess = async (credentialResponse) => {
-    const googleToken = credentialResponse.credential;
+  // Function to handle API call and navigation after successful login
+  const handlePostLogin = async (name, email) => {
+    setLoading(true); // Show loader
     try {
-      const decoded = jwtDecode(googleToken);
-      const { name, email } = decoded;
-
-      console.log("Google Login Success:", { name, email });
-      login({ name, email });
-
       // API call to backend to validate or create user
       const backendResponse = await validateOrCreateUser({ userName: name, mailId: email });
-
       const { userId, token } = backendResponse.data;
+
       if (userId && token) {
         saveToSession("userId", userId);
         saveToSession("authToken", token);
+        // ✅ Properly set full user context here
+        login({ name, email, userId, bearerToken: token });
       }
 
-      // Navigate after storing user session data
       navigate("/presentation");
     } catch (error) {
       console.error("Login or backend validation failed:", error);
+    } finally {
+      setLoading(false); // Just in case navigate fails
     }
+  };
+
+  // Check if the user is already logged in with Google
+  const checkLoggedInStatus = () => {
+    const googleToken = localStorage.getItem("googleToken"); // Retrieve stored Google Token (if any)
+    if (googleToken) {
+      // Decode token and validate session
+      const decoded = jwtDecode(googleToken);
+      const { name, email } = decoded;
+
+      // Proceed with backend API call if token is valid
+      handlePostLogin(name, email);
+    }
+  };
+
+  useEffect(() => {
+    // On page load, check if the user is already logged in
+    checkLoggedInStatus();
+
+    // Trigger Google One Tap auto-login (if the user is already logged in)
+    window.google.accounts.id.prompt(); // This will trigger auto-login if the user is already authenticated
+  }, []);
+
+  const handleLoginSuccess = async (credentialResponse) => {
+    const googleToken = credentialResponse.credential;
+    const decoded = jwtDecode(googleToken);
+    const { name, email } = decoded;
+
+    login({ name, email });
+
+    // API call to backend
+    handlePostLogin(name, email);
   };
 
   const handleLoginFailure = () => {
@@ -84,7 +116,6 @@ function SignInBasic() {
         <Grid container justifyContent="center" alignItems="center" height="100%">
           <Grid item xs={11} sm={9} md={6} lg={5} xl={4}>
             <Card sx={{ p: 5, borderRadius: "2xl", textAlign: "center", boxShadow: 6 }}>
-              {/* Logo */}
               <MKBox
                 component="img"
                 src={brandLogo}
@@ -94,7 +125,6 @@ function SignInBasic() {
                 mb={2}
               />
 
-              {/* Welcome Text */}
               <MKTypography variant="h3" color="info" fontWeight="bold" mb={1}>
                 Welcome to <span style={{ color: "#344767" }}>Nexti View</span>
               </MKTypography>
@@ -104,41 +134,53 @@ function SignInBasic() {
 
               <Divider sx={{ my: 3 }} />
 
-              {/* Google Sign-In Button */}
-              <GoogleLogin
-                onSuccess={handleLoginSuccess}
-                onError={handleLoginFailure}
-                useOneTap
-                render={(renderProps) => (
-                  <MKButton
-                    fullWidth
-                    variant="gradient"
-                    color="info" // Use "info" color for the button's background
-                    onClick={renderProps.onClick}
-                    startIcon={<GoogleIcon />}
-                    size="small"
-                    sx={{
-                      py: 1.5,
-                      fontSize: "1rem",
-                      backgroundColor: "red !important", // Add !important to force red background
-                      color: "white !important", // Force white text color
-                      "&:hover": {
-                        transform: "scale(1.05) !important", // Zoom-in effect on hover with !important
-                        backgroundColor: "#c1351d !important", // Darker red on hover with !important
-                      },
-                      transition: "all 0.3s ease !important", // Smooth transition for hover effect
-                    }}
-                  >
-                    Sign in with Google
-                  </MKButton>
-                )}
-              />
+              {loading ? (
+                <MKBox display="flex" justifyContent="center" alignItems="center" height="100px">
+                  <Oval
+                    height={60}
+                    width={60}
+                    color="#1976d2"
+                    secondaryColor="#ccc"
+                    strokeWidth={4}
+                    visible={true}
+                    ariaLabel="loading"
+                  />
+                </MKBox>
+              ) : (
+                <GoogleLogin
+                  onSuccess={handleLoginSuccess}
+                  onError={handleLoginFailure}
+                  useOneTap
+                  render={(renderProps) => (
+                    <MKButton
+                      fullWidth
+                      variant="gradient"
+                      color="info"
+                      onClick={renderProps.onClick}
+                      startIcon={<GoogleIcon />}
+                      size="small"
+                      sx={{
+                        py: 1.5,
+                        fontSize: "1rem",
+                        backgroundColor: "red !important",
+                        color: "white !important",
+                        "&:hover": {
+                          transform: "scale(1.05) !important",
+                          backgroundColor: "#c1351d !important",
+                        },
+                        transition: "all 0.3s ease !important",
+                      }}
+                    >
+                      Sign in with Google
+                    </MKButton>
+                  )}
+                />
+              )}
             </Card>
           </Grid>
         </Grid>
       </MKBox>
 
-      {/* Footer */}
       <MKBox width="100%" position="absolute" zIndex={2} bottom="1.625rem">
         <SimpleFooter light />
       </MKBox>

@@ -34,10 +34,7 @@ export default {
   menus: [
     {
       name: "company",
-      items: [
-        { name: "about us", href: "#" },
-        { name: "blog", href: "#" },
-      ],
+      items: [{ name: "about us", href: "/pages/landing-pages/about-us" }],
     },
     {
       name: "resources",
@@ -45,19 +42,11 @@ export default {
     },
     {
       name: "help & support",
-      items: [
-        { name: "contact us", href: "#" },
-        { name: "custom development", href: "#" },
-        { name: "sponsorships", href: "#" },
-      ],
+      items: [{ name: "contact us", href: "#" }],
     },
     {
       name: "legal",
-      items: [
-        { name: "terms & conditions", href: "#" },
-        { name: "privacy policy", href: "#" },
-        { name: "licenses (EULA)", href: "#" },
-      ],
+      items: [{ name: "terms & conditions", href: "#" }],
     },
   ],
   copyright: (
@@ -65,7 +54,7 @@ export default {
       All rights reserved. Copyright &copy; {date} by{" "}
       <MKTypography
         component="a"
-        href="https://www.creative-tim.com"
+        href="/presentation"
         target="_blank"
         rel="noreferrer"
         variant="button"

@@ -5,7 +5,6 @@ import Icon from "@mui/material/Icon";
 import AboutUs from "layouts/pages/landing-pages/about-us";
 import ContactUs from "layouts/pages/landing-pages/contact-us";
 import SignIn from "layouts/pages/authentication/sign-in";
-import Author from "layouts/pages/landing-pages/author";
 import ExtractAudio from "pages/LandingPages/ExtractAudio";
 
 // Check session
@@ -30,11 +29,6 @@ const routes = [
             name: "contact us",
             route: "/pages/landing-pages/contact-us",
             component: <ContactUs />,
-          },
-          {
-            name: "author",
-            route: "/pages/landing-pages/author",
-            component: <Author />,
           },
         ],
       },

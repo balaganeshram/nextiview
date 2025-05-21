@@ -1,18 +1,3 @@
-/*
-=========================================================
-* Material Kit 2 React - v2.1.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-kit-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
 // @mui material components
 import Grid from "@mui/material/Grid";
 
@@ -33,19 +18,59 @@ import footerRoutes from "footer.routes";
 // Image
 import bgImage from "assets/images/illustrations/illustration-reset.jpg";
 
+// API
+import messageApi from "api/messageApi";
+import { useState } from "react";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+
 function ContactUs() {
+  const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  const handleSendMessage = async () => {
+    const userName = document.getElementById("contact-name")?.value || "";
+    const mailId = document.getElementById("contact-email")?.value || "";
+    const message = document.getElementById("contact-message")?.value || "";
+
+    if (!userName || !mailId || !message) {
+      showSnackbar("Please fill all fields.", "warning");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setFeedback("");
+
+    const result = await messageApi.sendMessage({ userName, mailId, message });
+
+    setFeedback(result.message);
+    setLoading(false);
+
+    if (result.success) {
+      showSnackbar("Message sent successfully.", "success");
+      document.getElementById("contact-name").value = "";
+      document.getElementById("contact-email").value = "";
+      document.getElementById("contact-message").value = "";
+    } else {
+      setLoading(false);
+      showSnackbar("Failed to send message.", "error");
+    }
+  };
+
   return (
     <>
       <MKBox position="fixed" top="0.5rem" width="100%">
-        <DefaultNavbar
-          routes={routes}
-          action={{
-            type: "external",
-            route: "https://www.creative-tim.com/product/material-kit-react",
-            label: "free download",
-            color: "info",
-          }}
-        />
+        <DefaultNavbar routes={routes} />
       </MKBox>
       <Grid container spacing={3} alignItems="center">
         <Grid item xs={12} lg={6}>
@@ -95,15 +120,16 @@ function ContactUs() {
             </MKBox>
             <MKBox p={3}>
               <MKTypography variant="body2" color="text" mb={3}>
-                For further questions, including partnership opportunities, please email
-                hello@creative-tim.com or contact using our contact form.
+                For further queries, feedbacks or suggestions, please email
+                nextiviewofficial@gmail.com or contact using our contact form.
               </MKTypography>
-              <MKBox width="100%" component="form" method="post" autoComplete="off">
+              <MKBox width="100%">
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={6}>
                     <MKInput
                       variant="standard"
                       label="Full Name"
+                      id="contact-name"
                       InputLabelProps={{ shrink: true }}
                       fullWidth
                     />
@@ -113,6 +139,7 @@ function ContactUs() {
                       type="email"
                       variant="standard"
                       label="Email"
+                      id="contact-email"
                       InputLabelProps={{ shrink: true }}
                       fullWidth
                     />
@@ -122,6 +149,7 @@ function ContactUs() {
                       variant="standard"
                       label="What can we help you?"
                       placeholder="Describe your problem in at least 250 characters"
+                      id="contact-message"
                       InputLabelProps={{ shrink: true }}
                       multiline
                       fullWidth
@@ -130,15 +158,38 @@ function ContactUs() {
                   </Grid>
                 </Grid>
                 <Grid container item justifyContent="center" xs={12} mt={5} mb={2}>
-                  <MKButton type="submit" variant="gradient" color="info">
-                    Send Message
+                  <MKButton
+                    onClick={handleSendMessage}
+                    variant="gradient"
+                    color="info"
+                    disabled={loading}
+                  >
+                    {loading ? "Sending..." : "Send Message"}
                   </MKButton>
                 </Grid>
+                {feedback && (
+                  <Grid container item justifyContent="center" xs={12}>
+                    <MKTypography variant="body2" color="text">
+                      {feedback}
+                    </MKTypography>
+                  </Grid>
+                )}
               </MKBox>
             </MKBox>
           </MKBox>
         </Grid>
       </Grid>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
       <MKBox pt={6} px={1} mt={6}>
         <DefaultFooter content={footerRoutes} />
       </MKBox>

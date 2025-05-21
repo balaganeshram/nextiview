@@ -30,8 +30,8 @@ import breakpoints from "assets/theme/base/breakpoints";
 import { useNavigate } from "react-router-dom";
 
 function DefaultNavbar({ brand, routes, transparent, light, action, sticky, relative, center }) {
-  const [dropdown, setDropdown] = useState("");
-  const [dropdownEl, setDropdownEl] = useState("");
+  const [dropdown, setDropdown] = useState(null);
+  const [dropdownEl, setDropdownEl] = useState(null);
   const [dropdownName, setDropdownName] = useState("");
   const [nestedDropdown, setNestedDropdown] = useState("");
   const [nestedDropdownEl, setNestedDropdownEl] = useState("");
@@ -41,6 +41,9 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   const [mobileView, setMobileView] = useState(false);
   const { user, logout } = useUser();
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  //const isUserLoggedIn = !!user;
+  //const routes = getRoutes(isUserLoggedIn);
 
   const openMobileNavbar = () => setMobileNavbar(!mobileNavbar);
   const handleLogout = () => {
@@ -49,7 +52,19 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   };
 
   useEffect(() => {
-    // A function that sets the display state for the DefaultNavbarMobile.
+    // Check if context has valid user session
+    const userId = sessionStorage.getItem("userid");
+    //const authToken = sessionStorage.getItem("authtoken");
+    console.log(userId);
+    if (user && user.userId) {
+      console.log("true");
+      setIsLoggedIn(true);
+    } else {
+      console.log("false");
+      setIsLoggedIn(false);
+    }
+
+    // Handle responsive mobile navbar behavior
     function displayMobileNavbar() {
       if (window.innerWidth < breakpoints.values.lg) {
         setMobileView(true);
@@ -60,34 +75,33 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
       }
     }
 
-    /** 
-     The event listener that's calling the displayMobileNavbar function when 
-     resizing the window.
-    */
     window.addEventListener("resize", displayMobileNavbar);
-
-    // Call the displayMobileNavbar function to set the state with the initial value.
     displayMobileNavbar();
 
-    // Remove event listener on cleanup
     return () => window.removeEventListener("resize", displayMobileNavbar);
-  }, []);
+  }, [user]);
 
   // Utility to remove hidden items from nested structure
-  const getVisibleRoutes = (routes) =>
-    routes.map(({ collapse, ...rest }) => ({
-      ...rest,
-      ...(collapse && {
-        collapse: collapse
-          .map((section) => ({
-            ...section,
-            ...(section.collapse && {
-              collapse: section.collapse.filter((item) => !item.hidden),
-            }),
-          }))
-          .filter((section) => section.collapse?.length), // Remove empty sections
-      }),
-    }));
+  const getVisibleRoutes = (routes) => {
+    return routes
+      .map((route) => {
+        if (route.collapse) {
+          const visibleCollapse = route.collapse
+            .map((collapseItem) => {
+              if (collapseItem.collapse) {
+                const visibleSubItems = collapseItem.collapse.filter((item) => !item.hidden);
+                return { ...collapseItem, collapse: visibleSubItems };
+              }
+              return !collapseItem.hidden ? collapseItem : null;
+            })
+            .filter(Boolean);
+
+          return { ...route, collapse: visibleCollapse };
+        }
+        return !route.hidden ? route : null;
+      })
+      .filter(Boolean);
+  };
   const visibleRoutes = getVisibleRoutes(routes);
 
   const renderNavbarItems = visibleRoutes.map(({ name, icon, href, route, collapse }) => (
@@ -509,12 +523,13 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
             gap={1}
             sx={{ display: { xs: "none", lg: "flex" } }}
           >
-            {user ? (
+            {isLoggedIn ? (
               <>
                 <MKTypography variant="button" fontWeight="medium" color="success" sx={{ mx: 1 }}>
-                  Hello, {user.name}
+                  {/* Hello, {user?.name} */}
+                  Hello John,
                 </MKTypography>
-                <MKButton onClick={handleLogout} variant="gradient" color="error" size="small">
+                <MKButton onClick={logout} variant="gradient" color="error" size="small">
                   Logout
                 </MKButton>
               </>
@@ -589,7 +604,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
         >
           {mobileView && (
             <DefaultNavbarMobile
-              routes={routes}
+              routes={visibleRoutes}
               open={mobileNavbar}
               user={user}
               handleLogout={handleLogout}

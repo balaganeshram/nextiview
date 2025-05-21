@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Container, Grid, Button } from "@mui/material";
+import ProductDemoVideo from "components/ProductDemoVideo";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
@@ -7,6 +8,7 @@ import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
+import Swal from "sweetalert2";
 
 // Importing Images
 import bgImage from "assets/images/bg5.jpg";
@@ -17,12 +19,130 @@ import fileDownload from "assets/images/shapes/filedownload2.gif";
 // Default Navbar and Footer
 import DefaultNavbar from "examples/Navbars/DefaultNavbar";
 import DefaultFooter from "examples/Footers/DefaultFooter";
+import { Link, useNavigate } from "react-router-dom";
+
+//API call
+import api from "api/axiosInstance";
+import apiRoutes from "api/apiRoutes";
 
 // Routes
 import routes from "routes";
 import footerRoutes from "footer.routes";
 
 const Presentation = () => {
+  useEffect(() => {
+    const userId = sessionStorage.getItem("userId");
+    const authToken = sessionStorage.getItem("authToken");
+    // If either value is missing, clear local storage to force fresh login
+    if (!userId || !authToken) {
+      localStorage.clear();
+    }
+  }, []);
+
+  const plans = [
+    {
+      title: "Starter",
+      price: "$15",
+      id: "basic",
+      planId: "2",
+      features: [
+        "250 Mins Credits/month",
+        "Currently English language supported",
+        "Transcription Only",
+        "Email support",
+      ],
+    },
+    {
+      title: "Regular",
+      price: "$20",
+      id: "pro",
+      planId: "3",
+      features: [
+        "200 Mins Credits/month",
+        "Currently English language supported",
+        "Transciption & Other repurpose",
+        "Priority support",
+      ],
+    },
+    {
+      title: "Premium",
+      price: "$30",
+      id: "premium",
+      planId: "4",
+      features: [
+        "300 Mins Credits/month",
+        "Currently English language supported",
+        "Transciption & Other repurpose",
+        "Priority support",
+      ],
+    },
+  ];
+  // Handle subscribe button related api calls
+  const navigate = useNavigate();
+  const handleSubscribeClick = async (planId) => {
+    const userId = sessionStorage.getItem("userId");
+    const token = sessionStorage.getItem("authToken");
+    if (!userId || !token) {
+      Swal.fire({
+        title: "Hold on!",
+        text: "Please Sign-in first to subscribe.",
+        icon: "warning",
+        confirmButtonText: "Go to Sign-in",
+        background: "#fff",
+        customClass: {
+          popup: "swal2-rounded",
+          confirmButton: "material-ui-confirm-button",
+        },
+      }).then(() => {
+        navigate("/pages/authentication/sign-in");
+      });
+      return;
+    }
+
+    try {
+      const response = await api.post(
+        apiRoutes.presentation.createCheckout,
+        { planId, userId },
+        { headers: { requiresAuth: true } }
+      );
+
+      const checkoutUrl = response.data?.checkoutUrl;
+      if (checkoutUrl) {
+        const newTab = window.open(checkoutUrl, "_blank");
+        if (newTab) newTab.focus();
+      } else {
+        Swal.fire({
+          title: "Oops!",
+          text: "Checkout URL not received. Please try again later.",
+          icon: "error",
+          confirmButtonText: "OK",
+          background: "#fff",
+          customClass: {
+            popup: "swal2-rounded",
+            confirmButton: "material-ui-confirm-button",
+          },
+        });
+      }
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        "Something went wrong during checkout.";
+
+      Swal.fire({
+        title: "Checkout Failed",
+        text: message,
+        icon: "error",
+        confirmButtonText: "OK",
+        background: "#fff",
+        customClass: {
+          popup: "swal2-rounded",
+          confirmButton: "material-ui-confirm-button",
+        },
+      });
+    }
+  };
+
   return (
     <>
       {/* Navbar */}
@@ -52,10 +172,52 @@ const Presentation = () => {
                 [breakpoints.down("md")]: {
                   fontSize: size["3xl"],
                 },
+                fontWeight: "bold",
+                position: "relative",
+                display: "inline-block",
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  top: "0",
+                  left: "0",
+                  right: "0",
+                  bottom: "0",
+                  backgroundImage: "linear-gradient(45deg, #FF5722, #FF9800, #FFC107)", // Glow color gradient
+                  filter: "blur(10px)",
+                  zIndex: -1,
+                  animation: "glowEffect 1.5s infinite alternate",
+                },
+                animation: "textGlow 1.5s ease-in-out infinite alternate",
+                textShadow: "0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.8)", // Subtle glow effect
               })}
             >
               Repurpose Your Videos Effortlessly
             </MKTypography>
+
+            {/* Adding keyframes for the glow effect */}
+            <style>
+              {`
+    @keyframes glowEffect {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 10px rgba(255, 87, 34, 0.5), 0 0 20px rgba(255, 87, 34, 0.5);
+      }
+      100% {
+        transform: scale(1.1);
+        box-shadow: 0 0 30px rgba(255, 87, 34, 0.8), 0 0 60px rgba(255, 87, 34, 0.8);
+      }
+    }
+    @keyframes textGlow {
+      0% {
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.8), 0 0 10px rgba(255, 255, 255, 0.6);
+      }
+      100% {
+        text-shadow: 0 0 15px rgba(255, 255, 255, 1), 0 0 25px rgba(255, 255, 255, 0.8);
+      }
+    }
+  `}
+            </style>
+
             <MKTypography
               variant="body1"
               color="white"
@@ -63,7 +225,7 @@ const Presentation = () => {
               px={{ xs: 0, lg: 0 }}
               mt={1}
             >
-              Upload your video or YouTube link, and in just one click, generate a full blog post,
+              Upload your video, and in just one click, transcript, generate a full blog post,
               social media posts, and more!
             </MKTypography>
           </Grid>
@@ -78,7 +240,7 @@ const Presentation = () => {
             variant="h3"
             align="center"
             mb={2}
-            fontFamily="Poppins, sans-serif"
+            fontFamily="'Roboto Slab', sans-serif"
             fontWeight="600"
             color="primary.main"
             sx={{ textTransform: "uppercase", letterSpacing: "1px" }}
@@ -90,7 +252,7 @@ const Presentation = () => {
             align="center"
             mb={4}
             opacity={0.8}
-            fontFamily="Poppins, sans-serif"
+            fontFamily="'Roboto Slab', sans-serif"
             color="text.secondary"
           >
             It&apos;s as simple as 1-2-3. Here&apos;s how you can get started!
@@ -123,7 +285,7 @@ const Presentation = () => {
                   color="primary.main"
                   mb={2}
                   fontWeight="600"
-                  fontFamily="Poppins, sans-serif"
+                  fontFamily="'Roboto Slab', sans-serif"
                 >
                   1. Upload Your Video
                 </MKTypography>
@@ -135,15 +297,16 @@ const Presentation = () => {
                   alt="Upload File Animation"
                   sx={{
                     width: "100%",
-                    maxWidth: "120px",
+                    maxWidth: "150px", // Matching the size with the second GIF
                     mb: 2,
+                    objectFit: "contain", // Ensures GIF keeps aspect ratio
                   }}
                 />
 
                 <MKTypography
                   variant="body1"
                   color="text.secondary"
-                  fontFamily="Poppins, sans-serif"
+                  fontFamily="'Roboto Slab', sans-serif"
                   opacity={0.9}
                 >
                   Upload a video file or simply paste the YouTube link to get started.
@@ -177,7 +340,7 @@ const Presentation = () => {
                   color="primary.main"
                   mb={2}
                   fontWeight="600"
-                  fontFamily="Poppins, sans-serif"
+                  fontFamily="'Roboto Slab', sans-serif"
                 >
                   2. Let It Process
                 </MKTypography>
@@ -189,15 +352,16 @@ const Presentation = () => {
                   alt="Processing Animation"
                   sx={{
                     width: "100%",
-                    maxWidth: "120px",
+                    maxWidth: "150px", // Matching the size with the first GIF
                     mb: 2,
+                    objectFit: "contain", // Ensures GIF keeps aspect ratio
                   }}
                 />
 
                 <MKTypography
                   variant="body1"
                   color="text.secondary"
-                  fontFamily="Poppins, sans-serif"
+                  fontFamily="'Roboto Slab', sans-serif"
                   opacity={0.9}
                 >
                   Our AI will analyze the video and generate content in seconds!
@@ -231,27 +395,30 @@ const Presentation = () => {
                   color="primary.main"
                   mb={2}
                   fontWeight="600"
-                  fontFamily="Poppins, sans-serif"
+                  fontFamily="'Roboto Slab', sans-serif"
                 >
                   3. Download and Share
                 </MKTypography>
 
                 {/* GIF */}
+                {/* GIF for Step 3: Download and Share */}
                 <MKBox
                   component="img"
                   src={fileDownload}
                   alt="Download Animation"
                   sx={{
                     width: "100%",
-                    maxWidth: "120px",
+                    maxWidth: "150px", // Limiting the width to 120px for consistency
+                    height: "120px", // Explicitly setting the height to 120px to match the others
                     mb: 2,
+                    objectFit: "contain", // Ensure the aspect ratio is preserved
                   }}
                 />
 
                 <MKTypography
                   variant="body1"
                   color="text.secondary"
-                  fontFamily="Poppins, sans-serif"
+                  fontFamily="'Roboto Slab', sans-serif"
                   opacity={0.9}
                 >
                   Get a full SEO blog post, social media snippets, and more in one click!
@@ -261,6 +428,7 @@ const Presentation = () => {
           </Grid>
         </Container>
       </MKBox>
+
       {/* Features / Deliverables Section */}
       <MKBox component="section" py={8} bgcolor="white" sx={{ backgroundColor: "#fff !important" }}>
         <Container>
@@ -302,6 +470,8 @@ const Presentation = () => {
               </MKBox>
             </Grid>
           </Grid>
+          {/* Demo video call happening here */}
+          <ProductDemoVideo />
         </Container>
       </MKBox>
 
@@ -325,11 +495,7 @@ const Presentation = () => {
             }}
           >
             <Grid container spacing={4} justifyContent="center">
-              {[
-                { title: "Basic", price: "$9", id: "basic" },
-                { title: "Pro", price: "$19", id: "pro" },
-                { title: "Premium", price: "$29", id: "premium" },
-              ].map((plan) => (
+              {plans.map((plan) => (
                 <Grid item xs={12} sm={6} md={4} key={plan.id}>
                   <MKBox
                     p={4}
@@ -355,14 +521,8 @@ const Presentation = () => {
                       <span style={{ fontSize: "16px", color: "#888" }}>/month</span>
                     </MKTypography>
 
-                    {/* Bullet points using MUI List for proper alignment */}
                     <List dense disablePadding sx={{ mb: 2 }}>
-                      {[
-                        "50 AI Credits/month",
-                        "100+ languages supported",
-                        "Custom watermark",
-                        "Email support",
-                      ].map((point, index) => (
+                      {plan.features.map((point, index) => (
                         <ListItem
                           key={index}
                           sx={{
@@ -377,6 +537,8 @@ const Presentation = () => {
                     </List>
 
                     <MKButton
+                      component={Link}
+                      to="/extract-audio"
                       variant="outlined"
                       color="primary"
                       fullWidth
@@ -385,11 +547,13 @@ const Presentation = () => {
                     >
                       Try Now
                     </MKButton>
+
                     <MKButton
                       variant="contained"
                       color="primary"
                       fullWidth
                       id={`btn-subscribe-${plan.id}`}
+                      onClick={() => handleSubscribeClick(plan.planId)}
                     >
                       Subscribe Now
                     </MKButton>
@@ -419,6 +583,8 @@ const Presentation = () => {
           </MKTypography>
           <Grid container justifyContent="center">
             <Button
+              component={Link}
+              to="/extract-audio"
               id="ctaGetStarted"
               variant="contained"
               color="secondary"
