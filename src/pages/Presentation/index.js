@@ -579,7 +579,7 @@ const Presentation = () => {
             Ready to Repurpose Your Videos in Seconds?
           </MKTypography>
           <MKTypography variant="h6" align="center" mb={4} sx={{ opacity: 0.8 }}>
-            Upload a video or paste a YouTube link — and watch the magic happen!
+            Upload a video — and watch the magic happen!
           </MKTypography>
           <Grid container justifyContent="center">
             <Button
