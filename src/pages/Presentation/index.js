@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Container, Grid, Button } from "@mui/material";
 import ProductDemoVideo from "components/ProductDemoVideo";
+import FAQSection from "components/FAQSection";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
@@ -9,6 +10,7 @@ import MKButton from "components/MKButton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import Swal from "sweetalert2";
+import { motion } from "framer-motion";
 
 // Importing Images
 import bgImage from "assets/images/bg5.jpg";
@@ -435,8 +437,18 @@ const Presentation = () => {
           <MKTypography variant="h3" align="center" mb={2}>
             What You will Get
           </MKTypography>
+          <motion.div
+            initial={{ scale: 1 }}
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+          >
+            <MKTypography variant="h5" align="center" fontWeight="bold" color="primary" mb={4}>
+              🎉 Try our tool with <span style={{ color: "#00b894" }}>30 minutes</span> free AI
+              credits!
+            </MKTypography>
+          </motion.div>
           <MKTypography variant="h6" align="center" mb={4} opacity={0.8}>
-            When you upload a video or link, you will get:
+            When you upload a video, you will get:
           </MKTypography>
           <Grid container spacing={4} justifyContent="center">
             <Grid item xs={12} sm={4}>
@@ -606,11 +618,14 @@ const Presentation = () => {
           </Grid>
         </Container>
       </MKBox>
-
-      {/* Footer Section */}
-      <MKBox pt={6} px={1} mt={6}>
-        <DefaultFooter content={footerRoutes} />
+      {/* FAQ Section */}
+      <MKBox component="section" py={8} bgcolor="grey.100">
+        <Container>
+          <FAQSection />
+        </Container>
       </MKBox>
+      {/* Footer Section */}
+      <DefaultFooter content={footerRoutes} />
     </>
   );
 };
