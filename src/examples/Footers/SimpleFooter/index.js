@@ -85,7 +85,7 @@ SimpleFooter.defaultProps = {
   company: { href: "/Presentation", name: "Nexti View" },
   links: [
     { href: "#", name: "Nexti View" },
-    { href: "#", name: "About Us" },
+    { href: "/pages/landing-pages/about-us", name: "About Us" },
   ],
   light: false,
 };

@@ -42,7 +42,7 @@ export default {
     },
     {
       name: "help & support",
-      items: [{ name: "contact us", href: "#" }],
+      items: [{ name: "contact us", href: "/pages/landing-pages/contact-us" }],
     },
     {
       name: "legal",

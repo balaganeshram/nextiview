@@ -6,6 +6,7 @@ import apiRoutes from "./apiRoutes";
 export const generateRepurposedContent = async ({
   audioFile,
   sectionsToGenerate,
+  languageCode,
   outputFormat,
 }) => {
   const formData = new FormData();
@@ -15,6 +16,7 @@ export const generateRepurposedContent = async ({
   formData.append("SectionsToGenerate", sectionsToGenerate); // e.g., "summary,blog,tweet"
   formData.append("OutputFormat", outputFormat);
   formData.append("IncludeTranscription", "true");
+  formData.append("LanguageCode", languageCode);
 
   try {
     const response = await api.post(apiRoutes.repurpose.extractAudio, formData, {

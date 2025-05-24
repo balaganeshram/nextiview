@@ -4,12 +4,13 @@ import { Box, CircularProgress } from "@mui/material";
 
 function ProductDemoVideo() {
   const [showVideo, setShowVideo] = useState(false);
+  const [fadeIn, setFadeIn] = useState(false);
 
   useEffect(() => {
-    // Delay load to improve initial app performance
     const timeout = setTimeout(() => {
       setShowVideo(true);
-    }, 2000); // Delay video load by 2 seconds
+      setTimeout(() => setFadeIn(true), 50); // Trigger fade-in after video is mounted
+    }, 2000);
 
     return () => clearTimeout(timeout);
   }, []);
@@ -24,7 +25,7 @@ function ProductDemoVideo() {
         borderRadius: 2,
         overflow: "hidden",
         boxShadow: 3,
-        minHeight: "360px", // reserve height to avoid layout shift
+        minHeight: "360px",
         backgroundColor: "#f5f5f5",
         display: "flex",
         alignItems: "center",
@@ -41,6 +42,8 @@ function ProductDemoVideo() {
             width: "100%",
             height: "auto",
             display: "block",
+            opacity: fadeIn ? 1 : 0,
+            transition: "opacity 1s ease-in-out",
           }}
         >
           <source src="/videos/product-demo-min.mp4" type="video/mp4" />

@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Container, Grid, Button } from "@mui/material";
 import ProductDemoVideo from "components/ProductDemoVideo";
 import FAQSection from "components/FAQSection";
+import SupportedLanguagesSection from "components/SupportedLanguages";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
@@ -44,25 +45,25 @@ const Presentation = () => {
   const plans = [
     {
       title: "Starter",
-      price: "$15",
+      price: "$12",
       id: "basic",
       planId: "2",
       features: [
-        "250 Mins Credits/month",
-        "Currently English language supported",
-        "Transcription Only",
+        "400 Mins AI Credits/month",
+        "30+ languages supported",
+        "Transcription Only allowed",
         "Email support",
       ],
     },
     {
       title: "Regular",
-      price: "$20",
+      price: "$17",
       id: "pro",
       planId: "3",
       features: [
-        "200 Mins Credits/month",
-        "Currently English language supported",
-        "Transciption & Other repurpose",
+        "450 Mins AI Credits/month",
+        "30+ languages supported",
+        "All Repurpose features",
         "Priority support",
       ],
     },
@@ -72,10 +73,10 @@ const Presentation = () => {
       id: "premium",
       planId: "4",
       features: [
-        "300 Mins Credits/month",
-        "Currently English language supported",
-        "Transciption & Other repurpose",
-        "Priority support",
+        "1000 Mins AI Credits/month",
+        "30+ languages supported",
+        "All Repurpose features",
+        "Top Priority support",
       ],
     },
   ];
@@ -577,6 +578,8 @@ const Presentation = () => {
         </Container>
       </MKBox>
 
+      {/* Supported Languages Section */}
+      <SupportedLanguagesSection />
       {/* Final CTA Section */}
       <MKBox
         component="section"

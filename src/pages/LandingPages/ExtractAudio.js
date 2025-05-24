@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Checkbox, MenuItem, Select, InputLabel, FormControl, ListItemText } from "@mui/material";
+import { Checkbox, MenuItem, Select, FormControl, ListItemText } from "@mui/material";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { useDropzone } from "react-dropzone";
 import MKBox from "components/MKBox";
@@ -25,6 +25,7 @@ import bgImage from "assets/images/city-profile.jpg";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import { Stepper, Step, StepLabel } from "@mui/material";
+import languageOptions from "utils/languageOptions";
 //Import API call
 import { generateRepurposedContent } from "api/repurposeAudio";
 import { checkActivePlan } from "api/repurposeAudio";
@@ -48,6 +49,8 @@ const ExtractAudio = () => {
   const [selectedFileType, setSelectedFileType] = React.useState("docx");
   const [downloadUrl, setDownloadUrl] = React.useState(null);
   const [planId, setPlanId] = useState(null);
+  const [selectedLanguageCode, setSelectedLanguageCode] = useState("en");
+  const [hasDownloaded, setHasDownloaded] = useState(false);
 
   const navigate = useNavigate();
 
@@ -59,7 +62,7 @@ const ExtractAudio = () => {
       if (!userId || !authToken) {
         Swal.fire({
           title: "Hold on!",
-          text: "Please Sign-in first to repurpose your file",
+          text: "Please Re-Sign/Sign-in first to repurpose your file",
           icon: "warning",
           confirmButtonText: "Go to Sign-in",
           background: "#fff",
@@ -99,7 +102,7 @@ const ExtractAudio = () => {
 
       // Cleanup function to revoke blob URL if it exists when component unmounts or downloadUrl changes
       return () => {
-        if (downloadUrl) {
+        if (downloadUrl?.startsWith("blob:")) {
           URL.revokeObjectURL(downloadUrl);
           setDownloadUrl(null); // reset state to avoid using revoked URL
         }
@@ -108,6 +111,22 @@ const ExtractAudio = () => {
     [navigate, downloadUrl, setDownloadUrl],
     [planId]
   );
+
+  // Dropdown css style
+  const labelStyle = {
+    fontSize: 13,
+    fontWeight: "bold",
+    mb: 0.5,
+    display: "block",
+  };
+
+  const selectStyle = {
+    fontSize: 13,
+    minHeight: 42,
+    "& .MuiSelect-select": {
+      py: "6px",
+    },
+  };
 
   //Multi select dropdown code
   const [selectedOptions, setSelectedOptions] = useState([]);
@@ -176,6 +195,8 @@ const ExtractAudio = () => {
         "-i",
         inputFileName,
         "-vn",
+        "-af",
+        "silenceremove=start_periods=1:start_threshold=-50dB:start_silence=1:stop_periods=1:stop_threshold=-50dB:stop_silence=1",
         "-ar",
         "44100",
         "-ac",
@@ -218,6 +239,7 @@ const ExtractAudio = () => {
       const result = await generateRepurposedContent({
         audioFile,
         sectionsToGenerate: sectionsString,
+        languageCode: selectedLanguageCode,
         outputFormat: selectedFileType,
       });
 
@@ -227,16 +249,19 @@ const ExtractAudio = () => {
         setIsGenerated(true);
         setShowToast({ open: true, message: "File generated successfully!", type: "success" });
 
-        // ✅ Use downloadUrl and fileName from the result
+        // ✅ Save the URL for manual download
         setDownloadUrl(result.downloadUrl);
 
-        // ✅ Trigger automatic download using downloadUrl
-        const link = document.createElement("a");
-        link.href = result.downloadUrl;
-        link.download = result.fileName || "repurposed.zip";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // ✅ Trigger download only once
+        if (!hasDownloaded) {
+          const link = document.createElement("a");
+          link.href = result.downloadUrl;
+          link.download = result.fileName || "repurposed.zip";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setHasDownloaded(true); // prevent future auto-downloads
+        }
       } else {
         setShowToast({ open: true, message: result.message, type: "error" });
       }
@@ -425,91 +450,101 @@ const ExtractAudio = () => {
                 )}
               </Box>
             )}
-            {/* Multi-select & Single Dropdowns */}
+            {/* Dropdowns in a responsive row layout */}
             <Box
               mb={3}
               display="flex"
               gap={2}
               flexDirection={{ xs: "column", sm: "row" }}
-              alignItems="flex-end" // Align both dropdowns vertically
+              alignItems="flex-end"
             >
-              {/* Multi-select Dropdown */}
-              {planId !== 2 && (
-                <FormControl fullWidth variant="outlined" size="small" sx={{ flex: 2 }}>
-                  <InputLabel
-                    id="transcription-options-label"
-                    shrink
-                    sx={{
-                      fontSize: 13,
-                      fontWeight: "bold",
-                      backgroundColor: "white",
-                      px: 0.5,
-                    }}
-                  >
-                    Select Repurpose Options
-                  </InputLabel>
+              {/* Language Dropdown */}
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" sx={labelStyle}>
+                  Select Video Language
+                </Typography>
+                <FormControl fullWidth variant="outlined" size="small">
                   <Select
-                    labelId="transcription-options-label"
-                    id="transcriptionOptions"
-                    multiple
-                    value={selectedOptions}
-                    onChange={handleSelectChange}
-                    renderValue={(selected) => selected.join(", ")}
-                    label="Select Repurpose Options"
-                    sx={{
-                      fontSize: 13,
-                      minHeight: 42,
-                      "& .MuiSelect-select": {
-                        py: "6px",
+                    id="language-select"
+                    value={selectedLanguageCode}
+                    onChange={(e) => setSelectedLanguageCode(e.target.value)}
+                    displayEmpty
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: 240, // 5–7 items visible
+                          overflowY: "auto",
+                        },
                       },
                     }}
+                    sx={selectStyle}
                   >
-                    {options.map((option) => (
-                      <MenuItem key={option} value={option}>
-                        <Checkbox checked={selectedOptions.includes(option)} />
-                        <ListItemText primary={option} />
+                    {languageOptions.map((lang) => (
+                      <MenuItem key={lang.code} value={lang.code} sx={{ fontSize: 13 }}>
+                        {lang.label}
                       </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
+              </Box>
+
+              {/* Repurpose Options Multi-select */}
+              {planId !== 2 && (
+                <Box sx={{ flex: 1, maxWidth: 300 }}>
+                  <Typography variant="caption" sx={labelStyle}>
+                    Select Repurpose Options
+                  </Typography>
+                  <FormControl fullWidth variant="outlined" size="small">
+                    <Select
+                      id="transcriptionOptions"
+                      multiple
+                      value={selectedOptions}
+                      onChange={handleSelectChange}
+                      renderValue={(selected) => selected.join(", ")}
+                      displayEmpty
+                      MenuProps={{
+                        PaperProps: {
+                          style: {
+                            maxHeight: 240,
+                            overflowY: "auto",
+                          },
+                        },
+                      }}
+                      sx={selectStyle}
+                    >
+                      {options.map((option) => (
+                        <MenuItem key={option} value={option} sx={{ fontSize: 13 }}>
+                          <Checkbox checked={selectedOptions.includes(option)} />
+                          <ListItemText primary={<span style={{ fontSize: 13 }}>{option}</span>} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
               )}
 
               {/* File Type Dropdown */}
-              <FormControl variant="outlined" size="small" sx={{ minWidth: 150, flex: 1 }}>
-                <InputLabel
-                  id="file-type-label"
-                  shrink
-                  sx={{
-                    fontSize: 13,
-                    fontWeight: "bold",
-                    backgroundColor: "white",
-                    px: 0.5,
-                  }}
-                >
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" sx={labelStyle}>
                   Download File Type
-                </InputLabel>
-                <Select
-                  labelId="file-type-label"
-                  id="fileType"
-                  value={selectedFileType}
-                  onChange={(e) => setSelectedFileType(e.target.value)}
-                  label="Download File Type"
-                  sx={{
-                    fontSize: 13,
-                    minHeight: 42,
-                    "& .MuiSelect-select": {
-                      py: "6px",
-                    },
-                  }}
-                >
-                  <MenuItem value="docx" sx={{ fontSize: 13 }}>
-                    DOCX
-                  </MenuItem>
-                  <MenuItem value="txt" sx={{ fontSize: 13 }}>
-                    TXT
-                  </MenuItem>
-                </Select>
-              </FormControl>
+                </Typography>
+                <FormControl fullWidth variant="outlined" size="small">
+                  <Select
+                    id="fileType"
+                    value={selectedFileType}
+                    onChange={(e) => setSelectedFileType(e.target.value)}
+                    displayEmpty
+                    sx={selectStyle}
+                  >
+                    <MenuItem value="docx" sx={{ fontSize: 13 }}>
+                      DOCX
+                    </MenuItem>
+                    <MenuItem value="txt" sx={{ fontSize: 13 }}>
+                      TXT
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
             </Box>
 
             {/* Generate Now Button */}
@@ -550,7 +585,7 @@ const ExtractAudio = () => {
             {isGenerated && downloadUrl && (
               <Box mt={2}>
                 <Typography variant="body2">
-                  If download didnt start automatically,{" "}
+                  {"If download didn't start automatically, "}
                   <a href={downloadUrl} download="repurposed.zip">
                     click here to download manually
                   </a>

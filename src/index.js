@@ -14,10 +14,10 @@ const clientId = "728204570871-vma3hhb7325ommbofssd1rvncpke6fhq.apps.googleuserc
 
 root.render(
   <GoogleOAuthProvider clientId={clientId}>
-    <UserProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <UserProvider>
         <App />
-      </BrowserRouter>
-    </UserProvider>
+      </UserProvider>
+    </BrowserRouter>
   </GoogleOAuthProvider>
 );
