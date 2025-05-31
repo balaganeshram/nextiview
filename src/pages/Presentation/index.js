@@ -85,6 +85,7 @@ const Presentation = () => {
   const handleSubscribeClick = async (planId) => {
     const userId = sessionStorage.getItem("userId");
     const token = sessionStorage.getItem("authToken");
+
     if (!userId || !token) {
       Swal.fire({
         title: "Hold on!",
@@ -102,6 +103,24 @@ const Presentation = () => {
       return;
     }
 
+    // Open tab immediately to avoid popup blockers
+    const newTab = window.open("about:blank", "_blank");
+
+    if (!newTab) {
+      Swal.fire({
+        title: "Popup Blocked",
+        text: "Please allow popups for this site in your browser settings to continue to checkout.",
+        icon: "warning",
+        confirmButtonText: "OK",
+        background: "#fff",
+        customClass: {
+          popup: "swal2-rounded",
+          confirmButton: "material-ui-confirm-button",
+        },
+      });
+      return;
+    }
+
     try {
       const response = await api.post(
         apiRoutes.presentation.createCheckout,
@@ -110,10 +129,11 @@ const Presentation = () => {
       );
 
       const checkoutUrl = response.data?.checkoutUrl;
+
       if (checkoutUrl) {
-        const newTab = window.open(checkoutUrl, "_blank");
-        if (newTab) newTab.focus();
+        newTab.location.href = checkoutUrl;
       } else {
+        newTab.close(); // Clean up the blank tab
         Swal.fire({
           title: "Oops!",
           text: "Checkout URL not received. Please try again later.",
@@ -127,6 +147,7 @@ const Presentation = () => {
         });
       }
     } catch (error) {
+      newTab.close(); // Clean up the blank tab
       const message =
         error?.response?.data?.message ||
         error?.response?.data?.error ||
