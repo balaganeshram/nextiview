@@ -106,10 +106,14 @@ const ExtractAudio = () => {
           URL.revokeObjectURL(downloadUrl);
           setDownloadUrl(null); // reset state to avoid using revoked URL
         }
+        if (videoPreview?.startsWith("blob:")) {
+          URL.revokeObjectURL(videoPreview);
+        }
       };
     },
     [navigate, downloadUrl, setDownloadUrl],
-    [planId]
+    [planId],
+    [videoPreview]
   );
 
   // Dropdown css style
@@ -283,7 +287,7 @@ const ExtractAudio = () => {
     video.src = videoURL;
 
     video.onloadedmetadata = () => {
-      window.URL.revokeObjectURL(video.src);
+      //window.URL.revokeObjectURL(video.src);
       const duration = video.duration;
       const maxDurationSeconds = 31 * 60; // 31 minutes
 
@@ -293,6 +297,7 @@ const ExtractAudio = () => {
           title: "Too Long!",
           text: "Please upload a video that is 30 minutes or less.",
         });
+        URL.revokeObjectURL(videoURL);
         return;
       }
 
